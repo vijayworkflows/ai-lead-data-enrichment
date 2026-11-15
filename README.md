@@ -10,7 +10,7 @@ Sales teams often receive leads with limited company and prospect information. M
 
 This project automates the enrichment process by combining website data extraction with AI-powered analysis.
 
-The workflow receives qualified leads from Project 01, retrieves publicly available company website content, and uses Google Gemini to generate actionable sales intelligence.
+The workflow receives qualified leads from "[Lead Capture Workflow](https://github.com/vijayworkflows/automated-lead-qualification)", retrieves publicly available company website content, and uses Google Gemini to generate actionable sales intelligence.
 
 ## Business Objectives
 
