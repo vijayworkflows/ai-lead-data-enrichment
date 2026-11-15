@@ -1,0 +1,19 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+secrets/
+credentials.json
+
+# Local and temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Editor settings
+.vscode/

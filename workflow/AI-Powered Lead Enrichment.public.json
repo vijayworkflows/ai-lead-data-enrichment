@@ -1,0 +1,282 @@
+{
+  "name": "AI-Powered Lead Enrichment",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1456,
+        -384
+      ],
+      "id": "6f90579f-c011-4d18-a884-ef6d044c3b45",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.Website}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -720,
+        -192
+      ],
+      "id": "cfe88213-0bf3-4af0-aa0f-9b4be1aa4186",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nYou are a B2B Sales Intelligence Analyst.\n\nAnalyze the incoming lead and available company website content.\n\nLEAD INFORMATION:\nName: {{$json.fullName}}\nEmail: {{$json.email}}\nCompany: {{$json.company}}\nJob Title: {{$json.jobTitle}}\nIndustry: {{$json.industry}}\nCountry: {{$json.country}}\nProduct Interest: {{$json.product}}\nWebsite: {{$json.website}}\nLead Score: {{$json.leadScore}}\n\nCOMPANY WEBSITE CONTENT:\n{{$json.websiteContent}}\n\nYour task is to generate useful sales intelligence for the sales team.\n\nAnalyze:\n1. Company overview and business model.\n2. Likely business challenges.\n3. Potential use cases for the product they are interested in.\n4. Buying intent and decision-maker relevance.\n5. Recommended sales approach.\n6. A personalized first-touch outreach message.\n\nUse only evidence supported by the available information. Clearly identify assumptions and unknowns. Do not invent company facts.\n\nReturn the result in a clear, structured format with these sections:\n- Company Overview\n- Business Challenges\n- Potential Use Cases\n- Buying Intent\n- Recommended Sales Approach\n- Personalized Outreach\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -256,
+        -128
+      ],
+      "id": "38ed6e7b-f9e5-4b15-bae0-97c0ef4c145c",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        128
+      ],
+      "id": "3c8d7f0e-9ce1-46ab-8ffe-b909e10ccf0f",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"companyOverview\": { \"type\": \"string\", \"description\": \"2-3 sentences, based on website content\" },\n    \"businessModel\": { \"type\": \"string\", \"description\": \"How the company makes money\" },\n    \"likelyChallenges\": { \"type\": \"array\", \"items\": { \"type\": \"string\" }, \"description\": \"3-4 items tied to the lead's industry and size\" },\n    \"potentialUseCases\": { \"type\": \"array\", \"items\": { \"type\": \"string\" }, \"description\": \"3-4 items tied to the lead's product interest\" },\n    \"buyingIntent\": { \"type\": \"string\", \"enum\": [\"High\", \"Medium\", \"Low\", \"Unknown\"] },\n    \"decisionMakerRelevance\": { \"type\": \"string\", \"description\": \"Based on job title and company size\" },\n    \"recommendedSalesApproach\": { \"type\": \"string\" },\n    \"personalizedOutreach\": { \"type\": \"string\", \"description\": \"Ready-to-send email with subject line. No bracketed placeholders.\" },\n    \"confidence\": { \"type\": \"string\", \"enum\": [\"High\", \"Medium\", \"Low\"] },\n    \"evidenceAndUnknowns\": { \"type\": \"array\", \"items\": { \"type\": \"string\" }, \"description\": \"Prefix each item with Evidence:, Unknown: or Assumption:\" }\n  },\n  \"required\": [\"companyOverview\", \"businessModel\", \"likelyChallenges\", \"potentialUseCases\", \"buyingIntent\", \"decisionMakerRelevance\", \"recommendedSalesApproach\", \"personalizedOutreach\", \"confidence\", \"evidenceAndUnknowns\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        96
+      ],
+      "id": "a2abd5b1-8b29-47f1-ad92-69789c43c6e3",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "21384983-c276-4b38-adc7-1d72ca0f2adb",
+              "name": "Website",
+              "value": "={{ $json.website ? ($json.website.trim().startsWith('http') ? $json.website.trim() : 'https://' + $json.website.trim()) : '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -1184,
+        -272
+      ],
+      "id": "1c35dd69-fbae-4052-a541-93690bcfc0bd",
+      "name": "Normalize Lead"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "f224b69f-5565-491c-92c5-0ac88d7af53d",
+              "leftValue": "={{ $json.website }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        -928,
+        -112
+      ],
+      "id": "6d7bf3fa-5430-4d73-acb3-17354bef3410",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const lead = $('Normalize Lead').item.json;\n\nconst html = String($json.data || '');\n\n// Prefer <main>; fall back to <body>\nconst mainMatch = html.match(/<main[\\s\\S]*?<\\/main>/i);\nconst body = mainMatch ? mainMatch[0] : html;\n\n// Pull the page title and meta description separately\nconst title = (html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i) || [])[1] || '';\nconst desc = (html.match(/<meta[^>]+name=[\"']description[\"'][^>]+content=[\"']([^\"']*)[\"']/i) || [])[1] || '';\n\nconst text = body\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n  .replace(/<svg[\\s\\S]*?<\\/svg>/gi, ' ')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/g, ' ')\n  .replace(/&amp;/g, '&')\n  .replace(/&#x27;/g, \"'\")\n  .replace(/\\s+/g, ' ')\n  .trim();\n\nconst pageText = [title, desc, text].filter(Boolean).join(' | ').slice(0, 5000);\n\nreturn {\n  json: {\n    ...lead,\n    pageText: pageText || 'No website content could be retrieved.'\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        32
+      ],
+      "id": "bdc4c6e4-4c89-4d1a-9753-e1299bae48ba",
+      "name": "Basic AI Input"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const lead = $('Basic AI Input').item.json;\nconst { pageText, ...leadClean } = lead;\n\nreturn {\n  json: {\n    ...leadClean,\n    enrichment: $json.output\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -192
+      ],
+      "id": "222c1a1f-5a9d-4f97-b43c-6e5727c35e60",
+      "name": "AI Node"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Normalize Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Basic AI Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Lead": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic AI Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic AI Input": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "AI Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
