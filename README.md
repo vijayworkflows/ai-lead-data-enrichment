@@ -5,6 +5,9 @@
 
 Sales teams often receive leads with limited company and prospect information. Manually researching every prospect takes time and makes it difficult to prioritize opportunities.
 
+<img width="959" height="413" alt="AI_Lead_Enrichment" src="https://github.com/user-attachments/assets/56e9bbd0-40ff-4f8a-8166-47dbd136b27d" />
+
+
 This project automates the enrichment process by combining website data extraction with AI-powered analysis.
 
 The workflow receives qualified leads from Project 01, retrieves publicly available company website content, and uses Google Gemini to generate actionable sales intelligence.
